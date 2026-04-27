@@ -32,9 +32,11 @@ jobs:
       - name: Package downloads
         run: |
           mkdir -p release
-          zip -j release/weird-volume-sliders-macos-arm64.zip dist/weird-volume-sliders-macos-arm64 README.md
-          zip -j release/weird-volume-sliders-macos-intel.zip dist/weird-volume-sliders-macos-x64 README.md
-          zip -j release/weird-volume-sliders-windows-x64.zip dist/weird-volume-sliders-windows-x64.exe README.md
+          cp run-mac.command dist/run-mac.command
+          chmod +x dist/run-mac.command
+          zip -j release/weird-volume-sliders-macos-arm64.zip dist/weird-volume-sliders-macos-arm64 dist/run-mac.command README.md
+          zip -j release/weird-volume-sliders-macos-intel.zip dist/weird-volume-sliders-macos-x64 dist/run-mac.command README.md
+          zip -j release/weird-volume-sliders-windows-x64.zip dist/weird-volume-sliders-windows-x64.exe run-windows.bat README.md
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

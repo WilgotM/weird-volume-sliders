@@ -14,7 +14,12 @@ Go to the latest GitHub release and download the file for your computer:
 - **Mac with Intel chip**: `weird-volume-sliders-macos-intel.zip`
 - **Windows**: `weird-volume-sliders-windows-x64.zip`
 
-Unzip the file and run the app inside it. It starts a local server and prints a link:
+Unzip the file and run the starter inside it:
+
+- **Mac**: double-click `run-mac.command`
+- **Windows**: double-click `run-windows.bat`
+
+It starts a local server and prints a link:
 
 ```text
 http://127.0.0.1:3777
@@ -22,7 +27,7 @@ http://127.0.0.1:3777
 
 Open that link in your browser and pick any slider. The sliders will change the real system volume on that computer.
 
-On macOS, the app is unsigned, so you may need to right-click it and choose **Open** the first time.
+On macOS, the app is unsigned, so you may need to right-click it and choose **Open** the first time. On Windows, SmartScreen may warn because the app is unsigned; choose **More info** and **Run anyway** if you trust this download.
 
 ## Run locally with real system volume
 
