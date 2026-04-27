@@ -19,10 +19,20 @@ const PREVIEW_GIF_CACHE_TTL_MS = 30 * 60 * 1000;
 const AUDIO_MANIFEST_PATH = "assets/audio/manifest.json";
 const DEFAULT_PAGE_AUDIO_VOLUME = 0.3;
 const AUDIO_STATE_SAVE_INTERVAL_MS = 1500;
+const SYSTEM_VOLUME_ENDPOINT =
+  window.location.protocol === "http:" &&
+  /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)
+    ? "/api/volume"
+    : "http://127.0.0.1:3777/api/volume";
+const SYSTEM_VOLUME_SYNC_DELAY_MS = 80;
 const previewGifObjectUrls = new Map();
 let previewGifCleanupBound = false;
 let audioSaveTimestamp = 0;
 let deferredAudioUnlockBound = false;
+let systemVolumeSyncTimer = 0;
+let lastSystemVolumeValue = null;
+let systemVolumeRequestInFlight = false;
+let pendingSystemVolumeValue = null;
 
 const AUDIO_VOLUME_SELECTORS_BY_SLUG = {
   alphabetical: ["#volumeLabel"],
@@ -823,6 +833,73 @@ function initAudioVolumeSync() {
   audioState.volumeObserver = observer;
 }
 
+function shouldSyncSystemVolume() {
+  return (
+    document.body.classList.contains("project-page") &&
+    (window.location.protocol === "http:" || window.location.protocol === "file:")
+  );
+}
+
+function sendSystemVolume(value) {
+  pendingSystemVolumeValue = value;
+  if (systemVolumeRequestInFlight) return;
+
+  systemVolumeRequestInFlight = true;
+  const nextValue = pendingSystemVolumeValue;
+  pendingSystemVolumeValue = null;
+
+  fetch(SYSTEM_VOLUME_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ volume: nextValue }),
+  })
+    .catch(() => {
+      lastSystemVolumeValue = null;
+    })
+    .finally(() => {
+      systemVolumeRequestInFlight = false;
+      if (pendingSystemVolumeValue != null) {
+        sendSystemVolume(pendingSystemVolumeValue);
+      }
+    });
+}
+
+function syncSystemVolumeFromPage() {
+  const nextValue = Math.round(resolvePageAudioVolume() * 100);
+  if (!Number.isFinite(nextValue)) return;
+
+  const clampedValue = Math.max(0, Math.min(nextValue, 100));
+  if (clampedValue === lastSystemVolumeValue) return;
+
+  lastSystemVolumeValue = clampedValue;
+  sendSystemVolume(clampedValue);
+}
+
+function scheduleSystemVolumeSync() {
+  window.clearTimeout(systemVolumeSyncTimer);
+  systemVolumeSyncTimer = window.setTimeout(
+    syncSystemVolumeFromPage,
+    SYSTEM_VOLUME_SYNC_DELAY_MS,
+  );
+}
+
+function initSystemVolumeSync() {
+  if (!shouldSyncSystemVolume()) return;
+
+  scheduleSystemVolumeSync();
+  document.addEventListener("input", scheduleSystemVolumeSync, true);
+  document.addEventListener("change", scheduleSystemVolumeSync, true);
+
+  const observer = new MutationObserver(scheduleSystemVolumeSync);
+  observer.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["aria-valuenow", "data-volume", "value"],
+    childList: true,
+    characterData: true,
+    subtree: true,
+  });
+}
+
 function applyAudioResumeTime() {
   if (!audioState.audio || !audioState.resumeTime) return;
   if (
@@ -1496,6 +1573,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderSiteHeader();
   initSiteAudio();
   initAudioVolumeSync();
+  initSystemVolumeSync();
   renderGrid();
   mountHomePreviews();
   renderHomeSupport();

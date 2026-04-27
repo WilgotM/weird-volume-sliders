@@ -1,0 +1,55 @@
+name: Build downloads
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Mac and Windows downloads
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build standalone apps
+        run: npm run build:downloads
+
+      - name: Package downloads
+        run: |
+          mkdir -p release
+          zip -j release/weird-volume-sliders-macos-arm64.zip dist/weird-volume-sliders-macos-arm64 README.md
+          zip -j release/weird-volume-sliders-macos-intel.zip dist/weird-volume-sliders-macos-x64 README.md
+          zip -j release/weird-volume-sliders-windows-x64.zip dist/weird-volume-sliders-windows-x64.exe README.md
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: weird-volume-sliders-downloads
+          path: release/*.zip
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.zip
+          body: |
+            Download the file for your computer, unzip it, then run the app.
+
+            macOS Apple Silicon: `weird-volume-sliders-macos-arm64.zip`
+            macOS Intel: `weird-volume-sliders-macos-intel.zip`
+            Windows: `weird-volume-sliders-windows-x64.zip`

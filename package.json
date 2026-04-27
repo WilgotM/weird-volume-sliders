@@ -1,0 +1,31 @@
+{
+  "name": "real-macos-volume-sliders",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Intentionally inconvenient sliders that control the real macOS and Windows output volume locally.",
+  "bin": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build:mac-arm64": "pkg . --targets node20-macos-arm64 --output dist/weird-volume-sliders-macos-arm64",
+    "build:mac-x64": "pkg . --targets node20-macos-x64 --output dist/weird-volume-sliders-macos-x64",
+    "build:windows-x64": "pkg . --targets node20-win-x64 --output dist/weird-volume-sliders-windows-x64.exe",
+    "build:downloads": "npm run build:mac-arm64 && npm run build:mac-x64 && npm run build:windows-x64"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@yao-pkg/pkg": "^6.19.0"
+  },
+  "pkg": {
+    "assets": [
+      "assets/**/*",
+      "sliders/**/*",
+      "index.html",
+      "sitemap.xml",
+      "robots.txt",
+      "bubbles-upgrade.png",
+      "README.md"
+    ]
+  }
+}
