@@ -10,24 +10,27 @@ This fork also includes a tiny local bridge so the slider pages can control the 
 
 Go to the latest GitHub release and download the file for your computer:
 
-- **Mac with Apple Silicon**: `weird-volume-sliders-macos-arm64.zip`
-- **Mac with Intel chip**: `weird-volume-sliders-macos-intel.zip`
-- **Windows**: `weird-volume-sliders-windows-x64.zip`
+- **Mac with Apple Silicon**: `Weird-Volume-Sliders-Mac-arm64.dmg`
+- **Mac with Intel chip**: `Weird-Volume-Sliders-Mac-x64.dmg`
+- **Windows**: `Weird-Volume-Sliders-Windows-Setup.exe`
 
-Unzip the file and run the starter inside it:
+### Mac first launch
 
-- **Mac**: double-click `run-mac.command`
-- **Windows**: double-click `run-windows.bat`
+1. Open the `.dmg`.
+2. Drag **Weird Volume Sliders** into **Applications**.
+3. Open **Weird Volume Sliders** from Applications.
 
-It starts a local server and prints a link:
+The app is not Apple-notarized yet, so macOS may block it the first time. If that happens, right-click **Weird Volume Sliders**, choose **Open**, then choose **Open** again. After that, launching it is just opening the app normally.
 
-```text
-http://127.0.0.1:3777
-```
+### Windows first launch
 
-Open that link in your browser and pick any slider. The sliders will change the real system volume on that computer.
+1. Open `Weird-Volume-Sliders-Windows-Setup.exe`.
+2. Follow the installer.
+3. Open **Weird Volume Sliders** from the Start menu or desktop shortcut.
 
-On macOS, the app is unsigned, so you may need to right-click it and choose **Open** the first time. On Windows, SmartScreen may warn because the app is unsigned; choose **More info** and **Run anyway** if you trust this download.
+Windows SmartScreen may warn because the app is unsigned. Choose **More info** and **Run anyway** if you trust this download. After installing, launching it is just opening the app normally.
+
+The app opens the sliders in its own window and changes the real system volume on that computer.
 
 ## Run locally with real system volume
 
@@ -49,12 +52,13 @@ On Windows it uses PowerShell to call the Windows Core Audio API.
 
 ## Build downloads
 
-GitHub Actions builds release zips automatically when a tag starting with `v` is pushed, for example `v1.0.0`.
+GitHub Actions builds release downloads automatically when a tag starting with `v` is pushed, for example `v1.1.0`.
 
 To build locally after installing dependencies:
 
 ```sh
-npm run build:downloads
+npm run dist:mac
+npm run dist:windows
 ```
 
 ## What it includes

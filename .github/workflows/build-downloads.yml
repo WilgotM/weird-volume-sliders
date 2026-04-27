@@ -1,4 +1,4 @@
-name: Build downloads
+name: Build app downloads
 
 on:
   workflow_dispatch:
@@ -10,9 +10,9 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build Mac and Windows downloads
-    runs-on: ubuntu-latest
+  build-mac:
+    name: Build Mac DMG
+    runs-on: macos-latest
 
     steps:
       - name: Check out repo
@@ -24,34 +24,57 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build standalone apps
-        run: npm run build:downloads
+      - name: Build Mac app
+        run: npm run dist:mac
 
-      - name: Package downloads
-        run: |
-          mkdir -p release
-          cp run-mac.command dist/run-mac.command
-          chmod +x dist/run-mac.command
-          zip -j release/weird-volume-sliders-macos-arm64.zip dist/weird-volume-sliders-macos-arm64 dist/run-mac.command README.md
-          zip -j release/weird-volume-sliders-macos-intel.zip dist/weird-volume-sliders-macos-x64 dist/run-mac.command README.md
-          zip -j release/weird-volume-sliders-windows-x64.zip dist/weird-volume-sliders-windows-x64.exe run-windows.bat README.md
-
-      - name: Upload build artifacts
+      - name: Upload Mac artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: weird-volume-sliders-downloads
-          path: release/*.zip
+          name: weird-volume-sliders-mac
+          path: dist/*.dmg
 
-      - name: Publish GitHub release
+      - name: Publish Mac release assets
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: release/*.zip
+          files: dist/*.dmg
           body: |
-            Download the file for your computer, unzip it, then run the app.
+            Download the app for your computer.
 
-            macOS Apple Silicon: `weird-volume-sliders-macos-arm64.zip`
-            macOS Intel: `weird-volume-sliders-macos-intel.zip`
-            Windows: `weird-volume-sliders-windows-x64.zip`
+            Mac: download the DMG, open it, drag the app to Applications, then open Weird Volume Sliders.
+            Windows: download the setup EXE and follow the installer.
+
+            These builds are unsigned, so macOS or Windows may ask you to approve the app the first time.
+
+  build-windows:
+    name: Build Windows installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows app
+        run: npm run dist:windows
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: weird-volume-sliders-windows
+          path: dist/*.exe
+
+      - name: Publish Windows release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.exe

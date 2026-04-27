@@ -300,7 +300,8 @@ function serveStatic(req, res, urlPathname) {
   createReadStream(filePath).pipe(res);
 }
 
-const server = createServer((req, res) => {
+function createVolumeServer() {
+  return createServer((req, res) => {
   const requestUrl = new URL(req.url, `http://${HOST}:${PORT}`);
 
   if (requestUrl.pathname === "/api/volume") {
@@ -309,8 +310,39 @@ const server = createServer((req, res) => {
   }
 
   serveStatic(req, res, requestUrl.pathname);
-});
+  });
+}
 
-server.listen(PORT, HOST, () => {
-  console.log(`Real macOS volume sliders: http://${HOST}:${PORT}`);
-});
+function startServer(port = PORT, host = HOST) {
+  const server = createVolumeServer();
+
+  return new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, host, () => {
+      server.off("error", reject);
+      resolve({
+        host,
+        port,
+        server,
+        url: `http://${host}:${port}`,
+      });
+    });
+  });
+}
+
+if (require.main === module) {
+  startServer()
+    .then(({ url }) => {
+      console.log(`Real system volume sliders: ${url}`);
+    })
+    .catch((error) => {
+      console.error(error.message || error);
+      process.exit(1);
+    });
+}
+
+module.exports = {
+  HOST,
+  PORT,
+  startServer,
+};
