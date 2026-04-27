@@ -1,6 +1,6 @@
 {
   "name": "weird-volume-sliders",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Intentionally inconvenient sliders that control the real macOS and Windows output volume locally.",
   "main": "electron-main.js",
@@ -8,8 +8,8 @@
   "scripts": {
     "start": "node server.js",
     "app": "electron .",
-    "dist:mac": "electron-builder --mac dmg --x64 --arm64",
-    "dist:windows": "electron-builder --win nsis --x64"
+    "dist:mac": "electron-builder --mac dmg --x64 --arm64 --publish never",
+    "dist:windows": "electron-builder --win nsis --x64 --publish never"
   },
   "engines": {
     "node": ">=18"
