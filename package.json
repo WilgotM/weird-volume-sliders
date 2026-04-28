@@ -1,6 +1,6 @@
 {
   "name": "weird-volume-sliders",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "private": true,
   "description": "Intentionally inconvenient sliders that control the real macOS and Windows output volume locally.",
   "main": "electron-main.js",
