@@ -928,9 +928,13 @@ function syncSystemVolumeFromPage() {
 }
 
 function scheduleSystemVolumeSync() {
-  window.clearTimeout(systemVolumeSyncTimer);
+  if (systemVolumeSyncTimer) return;
+
   systemVolumeSyncTimer = window.setTimeout(
-    syncSystemVolumeFromPage,
+    () => {
+      systemVolumeSyncTimer = 0;
+      syncSystemVolumeFromPage();
+    },
     SYSTEM_VOLUME_SYNC_DELAY_MS,
   );
 }
