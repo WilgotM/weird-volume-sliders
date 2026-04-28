@@ -226,6 +226,24 @@ body.project-page {
   border-color: var(--line-hover);
 }
 
+.site-update-link {
+  gap: 0.42rem;
+  background: #171717;
+  border-color: #171717;
+  color: #ffffff;
+}
+
+.site-update-link svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.site-update-link:hover {
+  background: #2a2a2a;
+  border-color: #2a2a2a;
+}
+
 .site-audio {
   position: relative;
   display: grid;

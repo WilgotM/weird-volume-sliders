@@ -17,6 +17,8 @@ const STORAGE_KEYS = {
 const PREVIEW_GIF_CACHE_NAME = "volume-preview-gifs-v1";
 const PREVIEW_GIF_CACHE_TTL_MS = 30 * 60 * 1000;
 const AUDIO_MANIFEST_PATH = "assets/audio/manifest.json";
+const UPDATE_DOWNLOAD_URL =
+  "https://github.com/WilgotM/weird-volume-sliders/releases/latest";
 const DEFAULT_PAGE_AUDIO_VOLUME = 0.3;
 const AUDIO_STATE_SAVE_INTERVAL_MS = 1500;
 const SYSTEM_VOLUME_ENDPOINT =
@@ -559,6 +561,24 @@ function renderSiteHeader() {
           <a class="site-nav-link${inSliderSection ? " is-current" : ""}" href="${buildInternalHref(
             "sliders/",
           )}"${inSliderSection ? ' aria-current="page"' : ""}>Sliders</a>
+          <a
+            class="site-nav-link site-update-link"
+            href="${UPDATE_DOWNLOAD_URL}"
+            target="_blank"
+            rel="noreferrer"
+            title="Download the latest app version"
+          >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 3v11m0 0 4-4m-4 4-4-4M5 17.5V20h14v-2.5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span>Update</span>
+          </a>
           <a
             class="site-nav-link"
             href="https://github.com/TheBestVivBoy/volume"
