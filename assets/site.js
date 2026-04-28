@@ -19,6 +19,11 @@ const PREVIEW_GIF_CACHE_TTL_MS = 30 * 60 * 1000;
 const AUDIO_MANIFEST_PATH = "assets/audio/manifest.json";
 const UPDATE_DOWNLOAD_URL =
   "https://github.com/WilgotM/weird-volume-sliders/releases/latest";
+const UPDATE_CHECK_ENDPOINT =
+  window.location.protocol === "http:" &&
+  /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)
+    ? "/api/update-check"
+    : "http://127.0.0.1:3777/api/update-check";
 const DEFAULT_PAGE_AUDIO_VOLUME = 0.3;
 const AUDIO_STATE_SAVE_INTERVAL_MS = 1500;
 const SYSTEM_VOLUME_ENDPOINT =
@@ -566,6 +571,8 @@ function renderSiteHeader() {
             href="${UPDATE_DOWNLOAD_URL}"
             target="_blank"
             rel="noreferrer"
+            hidden
+            data-update-link
             title="Download the latest app version"
           >
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -633,6 +640,31 @@ function renderSiteHeader() {
       </div>
     </header>
   `;
+}
+
+async function checkForAppUpdate() {
+  const updateLink = document.querySelector("[data-update-link]");
+  if (!updateLink) return;
+
+  try {
+    const response = await fetch(UPDATE_CHECK_ENDPOINT, { cache: "no-store" });
+    if (!response.ok) return;
+
+    const update = await response.json();
+    if (!update.updateAvailable) return;
+
+    updateLink.href = update.downloadUrl || UPDATE_DOWNLOAD_URL;
+    updateLink.hidden = false;
+    if (update.latestVersion) {
+      updateLink.title = `Download version ${update.latestVersion}`;
+      updateLink.setAttribute(
+        "aria-label",
+        `Download version ${update.latestVersion}`,
+      );
+    }
+  } catch {
+    updateLink.hidden = true;
+  }
 }
 
 function getPageSlug() {
@@ -1591,6 +1623,7 @@ function initAnimations() {
 
 document.addEventListener("DOMContentLoaded", () => {
   renderSiteHeader();
+  void checkForAppUpdate();
   initSiteAudio();
   initAudioVolumeSync();
   initSystemVolumeSync();

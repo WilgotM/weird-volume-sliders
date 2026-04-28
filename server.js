@@ -8,6 +8,11 @@ const HOST = "127.0.0.1";
 const PORT = Number.parseInt(process.env.PORT || "3777", 10);
 const ROOT = __dirname;
 const PLATFORM = process.platform;
+const PACKAGE = require("./package.json");
+const LATEST_RELEASE_API_URL =
+  "https://api.github.com/repos/WilgotM/weird-volume-sliders/releases/latest";
+const LATEST_RELEASE_URL =
+  "https://github.com/WilgotM/weird-volume-sliders/releases/latest";
 
 const WINDOWS_VOLUME_SCRIPT = `
 Add-Type -TypeDefinition @"
@@ -144,6 +149,29 @@ function clampVolume(value) {
   return Math.max(0, Math.min(nextValue, 100));
 }
 
+function parseVersion(version) {
+  return String(version || "")
+    .replace(/^v/i, "")
+    .split(".")
+    .map((part) => Number.parseInt(part, 10))
+    .map((part) => (Number.isFinite(part) ? part : 0));
+}
+
+function isNewerVersion(latestVersion, currentVersion) {
+  const latestParts = parseVersion(latestVersion);
+  const currentParts = parseVersion(currentVersion);
+  const length = Math.max(latestParts.length, currentParts.length);
+
+  for (let index = 0; index < length; index += 1) {
+    const latestPart = latestParts[index] || 0;
+    const currentPart = currentParts[index] || 0;
+    if (latestPart > currentPart) return true;
+    if (latestPart < currentPart) return false;
+  }
+
+  return false;
+}
+
 function runAppleScript(script, args = []) {
   return new Promise((resolve, reject) => {
     execFile("osascript", ["-e", script, ...args], (error, stdout, stderr) => {
@@ -259,6 +287,50 @@ async function handleVolumeApi(req, res) {
   }
 }
 
+async function handleUpdateCheckApi(req, res) {
+  if (req.method === "OPTIONS") {
+    send(res, 204, "");
+    return;
+  }
+
+  if (req.method !== "GET") {
+    sendJson(res, 405, { error: "Method not allowed." });
+    return;
+  }
+
+  try {
+    const response = await fetch(LATEST_RELEASE_API_URL, {
+      headers: {
+        Accept: "application/vnd.github+json",
+        "User-Agent": "Weird-Volume-Sliders",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`GitHub returned ${response.status}.`);
+    }
+
+    const release = await response.json();
+    const latestVersion = String(release.tag_name || "").replace(/^v/i, "");
+    const downloadUrl = release.html_url || LATEST_RELEASE_URL;
+
+    sendJson(res, 200, {
+      currentVersion: PACKAGE.version,
+      latestVersion,
+      updateAvailable: isNewerVersion(latestVersion, PACKAGE.version),
+      downloadUrl,
+    });
+  } catch (error) {
+    sendJson(res, 200, {
+      currentVersion: PACKAGE.version,
+      latestVersion: null,
+      updateAvailable: false,
+      downloadUrl: LATEST_RELEASE_URL,
+      error: error.message || "Unable to check for updates.",
+    });
+  }
+}
+
 function resolveStaticPath(urlPathname) {
   const decodedPathname = decodeURIComponent(urlPathname);
   const normalizedPathname =
@@ -306,6 +378,11 @@ function createVolumeServer() {
 
   if (requestUrl.pathname === "/api/volume") {
     void handleVolumeApi(req, res);
+    return;
+  }
+
+  if (requestUrl.pathname === "/api/update-check") {
+    void handleUpdateCheckApi(req, res);
     return;
   }
 
